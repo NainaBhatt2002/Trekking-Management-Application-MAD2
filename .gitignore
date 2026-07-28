@@ -3,28 +3,22 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-venv/
-.env
+
+# Virtual Environment
+backend/.venv/
+backend/venv/
+backend/env/
 
 # Flask
-instance/
+backend/instance/
 .flaskenv
 
 # SQLite
 *.db
 *.sqlite3
 
-# Vue
-node_modules/
-dist/
-npm-debug.log*
-
 # VS Code
 .vscode/
 
-# Redis
-dump.rdb
-
-# OS Files
-.DS_Store
+# Windows
 Thumbs.db
