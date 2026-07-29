@@ -2,7 +2,8 @@ from flask import Flask
 from application.config import LocalDevelopmentConfig
 from application.database import db
 from application.models import User, Trek, Booking, StaffProfile
-# from application.security import jwt
+from werkzeug.security import generate_password_hash
+from application.security import jwt
 
 app = None
 
@@ -10,11 +11,13 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(LocalDevelopmentConfig)
     db.init_app(app)
-    # jwt.init_app(app)
+    jwt.init_app(app)
     app.app_context().push()
     return app
 
 app = create_app()
+
+from application.routes import *
 
 if __name__ == "__main__":
     db.create_all()
@@ -26,7 +29,7 @@ if __name__ == "__main__":
             username = "admin",
             name = "Administrator",
             email = "admin@gmail.com",
-            password = "admin123",
+            password = generate_password_hash("admin123"),
             role = "admin"
         )
         

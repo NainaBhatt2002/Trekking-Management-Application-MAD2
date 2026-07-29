@@ -9,7 +9,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), nullable=False,)   # admin, trek staff, trekker
+    role = db.Column(db.String(20), nullable=False,)   # admin, staff, trekker
     
     treks = db.relationship("Trek", backref="staff", lazy=True)
     bookings = db.relationship("Booking", backref="user", lazy=True)
@@ -19,7 +19,7 @@ class User(db.Model):
 
 class Trek(db.Model):
     __tablename__ = "treks"
-
+    
     id = db.Column(db.Integer, primary_key=True)
     trek_name = db.Column(db.String(100), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)
@@ -35,6 +35,15 @@ class Trek(db.Model):
 
 class Booking(db.Model):
     __tablename__ = "bookings"
+    
+    __table_args__ = (
+        db.UniqueConstraint(
+            "user_id",
+            "trek_id",
+            name="unique_user_trek_booking"
+        ),
+    )
+    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     trek_id = db.Column(db.Integer, db.ForeignKey("treks.id"), nullable=False)
