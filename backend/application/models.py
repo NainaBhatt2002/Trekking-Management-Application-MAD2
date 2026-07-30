@@ -43,7 +43,6 @@ class Booking(db.Model):
             name="unique_user_trek_booking"
         ),
     )
-    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     trek_id = db.Column(db.Integer, db.ForeignKey("treks.id"), nullable=False)
