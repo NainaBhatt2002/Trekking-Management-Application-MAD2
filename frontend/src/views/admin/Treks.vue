@@ -110,7 +110,7 @@
 
     </div>
 
-    <!-- Add Trek Modal -->
+    <!-- Add Trek Pop up -->
 
     <div
       v-if="showModal"

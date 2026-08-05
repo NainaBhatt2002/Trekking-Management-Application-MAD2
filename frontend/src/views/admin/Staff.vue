@@ -112,7 +112,7 @@
 
     </div>
 
-    <!-- Add / Edit Staff Modal -->
+    <!-- Add / Edit Staff Pop Up -->
 
     <div
       v-if="showModal"
@@ -222,7 +222,7 @@
 
     </div>
 
-        <!-- Activate / Deactivate Staff Modal -->
+        <!-- Activate / Deactivate Staff Pop up -->
 
     <div
       v-if="showStatusModal"
@@ -297,7 +297,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-
 import api from "../../services/api";
 import AdminLayout from "../../components/AdminLayout.vue";
 import SearchBar from "../../components/SearchBar.vue";

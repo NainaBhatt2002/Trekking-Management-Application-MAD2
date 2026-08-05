@@ -119,7 +119,7 @@
 
     </div>
 
-    <!-- Booking Details Modal -->
+    <!-- Booking Details Pop up -->
 
     <div
       v-if="showModal"

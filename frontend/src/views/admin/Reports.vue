@@ -106,6 +106,8 @@
 
 </div>
 
+<!-- User Status -->
+
 <div class="row g-4 mb-4">
 
   <div class="col-lg-6">
@@ -134,6 +136,8 @@
 
   </div>
 
+  <!-- Staff Status -->
+
   <div class="col-lg-6">
 
     <div class="card shadow-sm border-0 h-100">
@@ -161,6 +165,8 @@
   </div>
 
 </div>
+
+<!-- Booking Status -->
 
 <div class="row g-4 mb-4">
 
@@ -200,6 +206,8 @@
     </div>
 
   </div>
+
+  <!-- Payment Status -->
 
   <div class="col-lg-6">
 
@@ -246,7 +254,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-
 import {
   Chart as ChartJS,
   ArcElement,
@@ -256,9 +263,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
 import { Pie, Doughnut, Bar } from "vue-chartjs";
-
 import api from "../../services/api";
 import AdminLayout from "../../components/AdminLayout.vue";
 

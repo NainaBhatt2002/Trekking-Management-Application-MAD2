@@ -39,7 +39,7 @@ const register = async () => {
 
     <div style="width: 450px;">
 
-      <!-- Heading Outside Card -->
+      <!-- Heading -->
       <div class="text-center mb-4">
 
         <h1 class="fw-bold display-6 mb-2">
