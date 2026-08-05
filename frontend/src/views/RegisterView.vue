@@ -1,99 +1,148 @@
 <script setup>
 import { ref } from "vue";
-import api from "../services/api";
 import { useRouter } from "vue-router";
+import api from "../services/api";
 
 const router = useRouter();
 
-const username = ref("");
-const name = ref("");
-const email = ref("");
-const password = ref("");
+const form = ref({
+  username: "",
+  name: "",
+  email: "",
+  password: "",
+});
 
-const handleRegister = async () => {
-    try {
-        const response = await api.post("/register", {
-            username: username.value,
-            name: name.value,
-            email: email.value,
-            password: password.value,
-        });
+const error = ref("");
+const success = ref("");
 
-        console.log(response.data);
-        alert("Registration successful! Please log in.");
-        router.push("/login");
-    } catch (error) {
-        console.error(error.response.data);
-        alert(error.response.data);
-    }
+const register = async () => {
+  error.value = "";
+  success.value = "";
+
+  try {
+    const response = await api.post("/register", form.value);
+
+    success.value = response.data;
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1500);
+
+  } catch (err) {
+    error.value = err.response?.data || "Registration failed";
+  }
 };
-
 </script>
 
 <template>
-    <div>
-        <h1>Register</h1>
+  <div class="container-fluid bg-light min-vh-100 d-flex justify-content-center align-items-center">
 
-        <form @submit.prevent="handleRegister">
+    <div style="width: 450px;">
 
-            <div>
-                <label>Username</label><br>
-                <input
-                    type="text"
-                    v-model="username"
-                    placeholder="Enter username"
-                >
-            </div>
+      <!-- Heading Outside Card -->
+      <div class="text-center mb-4">
 
-            <br>
+        <h1 class="fw-bold display-6 mb-2">
+          Join Trekkify
+        </h1>
 
-            <div>
-                <label>Full Name</label><br>
-                <input
-                    type="text"
-                    v-model="name"
-                    placeholder="Enter full name"
-                >
-            </div>
+        <p class="text-secondary mb-0">
+          Create your Trekkify account.
+        </p>
 
-            <br>
+      </div>
 
-            <div>
-                <label>Email</label><br>
-                <input
-                    type="email"
-                    v-model="email"
-                    placeholder="Enter email"
-                >
-            </div>
+      <div class="card border-0 shadow rounded-4 p-5">
 
-            <br>
+        <div
+          v-if="error"
+          class="alert alert-danger"
+        >
+          {{ error }}
+        </div>
 
-            <div>
-                <label>Password</label><br>
-                <input
-                    type="password"
-                    v-model="password"
-                    placeholder="Enter password"
-                >
-            </div>
+        <div
+          v-if="success"
+          class="alert alert-success"
+        >
+          {{ success }}
+        </div>
 
-            <br>
+        <form @submit.prevent="register">
 
-            <button type="submit">
-                Register
-            </button>
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input
+              v-model="form.name"
+              type="text"
+              class="form-control py-2"
+              placeholder="Enter your full name"
+              required
+            >
+          </div>
 
-            <p>
-                Already have an account?
-                <router-link to="/login">
-                    Login
-                </router-link>
-            </p>
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input
+              v-model="form.username"
+              type="text"
+              class="form-control py-2"
+              placeholder="Choose a username"
+              required
+            >
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input
+              v-model="form.email"
+              type="email"
+              class="form-control py-2"
+              placeholder="Enter your email"
+              required
+            >
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Password</label>
+            <input
+              v-model="form.password"
+              type="password"
+              class="form-control py-2"
+              placeholder="Create a password"
+              required
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary w-100 py-2 fw-semibold"
+          >
+            Create Account
+          </button>
 
         </form>
-    </div>
-</template>
 
-<style scoped>
-</style>
+        <hr class="my-4">
+
+        <div class="text-center">
+
+          <span class="text-muted">
+            Already have an account?
+          </span>
+
+          <RouterLink
+            to="/login"
+            class="text-decoration-none fw-semibold ms-1"
+          >
+            Login
+          </RouterLink>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</template>

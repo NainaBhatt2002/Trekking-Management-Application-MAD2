@@ -1,51 +1,97 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 
-import LoginView from '../views/LoginView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import AdminDashboard from '../views/AdminDashboard.vue'
-import StaffDashboard from '../views/StaffDashboard.vue'
-import TrekkerDashboard from '../views/TrekkerDashboard.vue'
+import LoginView from "../views/LoginView.vue";
+import RegisterView from "../views/RegisterView.vue";
+import AdminDashboard from "../views/admin/Dashboard.vue";
+import Treks from "../views/admin/Treks.vue";
+import Staff from "../views/admin/Staff.vue";
+import Users from "../views/admin/Users.vue";
+import Bookings from "../views/admin/Bookings.vue";
+import StaffDashboard from "../views/StaffDashboard.vue";
+import TrekkerDashboard from "../views/TrekkerDashboard.vue";
+import Reports from "../views/admin/Reports.vue";
 
 const routes = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      redirect: '/login',
-    },
+  path: "/",
+  redirect: "/login",
+},
+{
+  path: "/login",
+  component: LoginView,
+},
+{
+  path: "/register",
+  component: RegisterView,
+},
+    
     {
-      path: '/login',
-      component: LoginView,
-    },
-    {
-      path: '/register',
-      component: RegisterView,
-    },
-    {
-      path: '/admin/dashboard',
-      component: AdminDashboard,
-      meta: {
-        requiresAuth: true,
-        role: 'admin',
-      },
-    },
-    {
-      path: '/staff/dashboard',
-      component: StaffDashboard,
-      meta: {
-        requiresAuth: true,
-        role: 'staff',
-      },
-    },
-    {
-      path: '/trekker/dashboard',
-      component: TrekkerDashboard,
-      meta: {
-        requiresAuth: true,
-        role: 'trekker',
-      },
-    },
-  ]
+  path: "/admin/dashboard",
+  component: AdminDashboard,
+  meta: {
+    requiresAuth: true,
+    role: "admin",
+  },
+},
+{
+  path: "/admin/treks",
+  component: Treks,
+  meta: {
+    requiresAuth: true,
+    role: "admin",
+  },
+},
+{
+  path: "/admin/staff",
+  component: Staff,
+  meta: {
+    requiresAuth: true,
+    role: "admin",
+  },
+},
+{
+  path: "/admin/users",
+  component: Users,
+  meta: {
+    requiresAuth: true,
+    role: "admin",
+  },
+},
+{
+  path: "/admin/bookings",
+  component: Bookings,
+  meta: {
+    requiresAuth: true,
+    role: "admin",
+  },
+},
+{
+  path: "/admin/reports",
+  component: Reports,
+  meta: {
+    requiresAuth: true,
+    role: "admin",
+  },
+},
+{
+  path: "/staff/dashboard",
+  component: StaffDashboard,
+  meta: {
+    requiresAuth: true,
+    role: "staff",
+  },
+},
+{
+  path: "/trekker/dashboard",
+  component: TrekkerDashboard,
+  meta: {
+    requiresAuth: true,
+    role: "trekker",
+  },
+},
+]
 });
 
 routes.beforeEach((to, from, next) => {

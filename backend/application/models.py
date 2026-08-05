@@ -10,7 +10,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False,)   # admin, staff, trekker
-    
+    is_active = db.Column(db.Boolean, default=True)
+
     treks = db.relationship("Trek", backref="staff", lazy=True)
     bookings = db.relationship("Booking", backref="user", lazy=True)
     

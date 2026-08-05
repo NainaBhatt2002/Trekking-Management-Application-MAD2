@@ -3,77 +3,128 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 
-const login = ref("");
-const password = ref("");
 const router = useRouter();
 
+const login = ref("");
+const password = ref("");
+const error = ref("");
+
 const handleLogin = async () => {
-    try {
-        const response = await api.post("/login", {
-            login: login.value,
-            password: password.value,
-        });
+  error.value = "";
 
-        localStorage.setItem("token", response.data.access_token);
-        localStorage.setItem("role", response.data.role);
+  try {
+    const response = await api.post("/login", {
+      login: login.value,
+      password: password.value,
+    });
 
-        if (response.data.role === "admin") {
-            router.push("/admin/dashboard");
-        } else if (response.data.role === "staff") {
-            router.push("/staff/dashboard");
-        } else {
-            router.push("/trekker/dashboard");
-        }
+    localStorage.setItem("token", response.data.access_token);
+    localStorage.setItem("role", response.data.role);
 
-    } catch (error) {
-        console.error(error.response.data);
+    if (response.data.role === "admin") {
+      router.push("/admin/dashboard");
+    } else if (response.data.role === "staff") {
+      router.push("/staff/dashboard");
+    } else {
+      router.push("/trekker/dashboard");
     }
+  } catch (err) {
+    error.value = err.response?.data || "Invalid credentials";
+  }
 };
-
 </script>
 
 <template>
-    <div>
-        <h1>Login</h1>
+  <div class="container-fluid bg-light min-vh-100 d-flex justify-content-center align-items-center">
+
+    <div style="width: 450px;">
+
+      <!-- Heading -->
+      <div class="text-center mb-4">
+
+        <h1 class="fw-bold display-6 mb-2">
+          Welcome Back
+        </h1>
+
+        <p class="text-secondary mb-0">
+          Sign in to your Trekkify account.
+        </p>
+
+      </div>
+
+      <!-- Login Card -->
+      <div class="card border-0 shadow rounded-4 p-5">
+
+        <div
+          v-if="error"
+          class="alert alert-danger"
+        >
+          {{ error }}
+        </div>
 
         <form @submit.prevent="handleLogin">
 
-            <div>
-                <label>Username or Email</label><br>
-                <input
-                    type="text"
-                    v-model="login"
-                    placeholder="Enter username or email"
-                >
-            </div>
+          <div class="mb-3">
 
-            <br>
+            <label class="form-label">
+              Username or Email
+            </label>
 
-            <div>
-                <label>Password</label><br>
-                <input
-                    type="password"
-                    v-model="password"
-                    placeholder="Enter password"
-                >
-            </div>
+            <input
+              v-model="login"
+              type="text"
+              class="form-control py-2"
+              placeholder="Enter your username or email"
+              required
+            >
 
-            <br>
+          </div>
 
-            <button type="submit">
-                Login
-            </button>
+          <div class="mb-4">
 
-            <p>
-                Don't have an account?
-                <router-link to="/register">
-                    Register
-                </router-link>
-            </p>
+            <label class="form-label">
+              Password
+            </label>
+
+            <input
+              v-model="password"
+              type="password"
+              class="form-control py-2"
+              placeholder="Enter your password"
+              required
+            >
+
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary w-100 py-2 fw-semibold"
+          >
+            Login
+          </button>
 
         </form>
-    </div>
-</template>
 
-<style scoped>
-</style>
+        <hr class="my-4">
+
+        <div class="text-center">
+
+          <span class="text-muted">
+            Don't have an account?
+          </span>
+
+          <RouterLink
+            to="/register"
+            class="text-decoration-none fw-semibold ms-1"
+          >
+            Register
+          </RouterLink>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</template>
