@@ -11,6 +11,12 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False,)   # admin, staff, trekker
     is_active = db.Column(db.Boolean, default=True)
+    phone = db.Column(db.String(15), nullable=True)
+    gender = db.Column(db.String(20), nullable=True)
+    age = db.Column(db.Integer, nullable=True)
+    address = db.Column(db.String(255), nullable=True)
+    emergency_contact = db.Column(db.String(15), nullable=True)
+    blood_group = db.Column(db.String(5), nullable=True)
 
     treks = db.relationship("Trek", backref="staff", lazy=True)
     bookings = db.relationship("Booking", backref="user", lazy=True)
@@ -28,6 +34,7 @@ class Trek(db.Model):
     available_slots = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), default="Open")
     staff_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    location = db.Column(db.String(100), nullable=False)
     
     bookings = db.relationship("Booking", backref="trek", lazy=True)
 

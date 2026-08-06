@@ -1,33 +1,5 @@
-<script setup>
-import { ref, onMounted } from "vue"
-import AdminLayout from "../../components/AdminLayout.vue"
-import DashboardCard from "../../components/DashboardCard.vue"
-import api from "../../services/api.js"
-
-const dashboard = ref({
-  total_treks: 0,
-  total_users: 0,
-  total_staff: 0,
-  total_bookings: 0,
-  recentBookings: [],
-})
-
-const loadDashboard = async () => {
-  try {
-    const response = await api.get("/admin/dashboard")
-    dashboard.value = response.data
-  } catch (error) {
-    console.error(error.response?.data || error)
-  }
-}
-
-onMounted(() => {
-  loadDashboard()
-})
-</script>
-
 <template>
-  <AdminLayout title="Admin Dashboard">
+  <AppLayout title="Admin Dashboard">
 
     <div class="row g-4">
 
@@ -110,5 +82,33 @@ onMounted(() => {
 
     </div>
 
-  </AdminLayout>
+  </AppLayout>
 </template>
+
+<script setup>
+import { ref, onMounted } from "vue"
+import AppLayout from "../../components/AppLayout.vue"
+import DashboardCard from "../../components/DashboardCard.vue"
+import api from "../../services/api.js"
+
+const dashboard = ref({
+  total_treks: 0,
+  total_users: 0,
+  total_staff: 0,
+  total_bookings: 0,
+  recentBookings: [],
+})
+
+const loadDashboard = async () => {
+  try {
+    const response = await api.get("/admin/dashboard")
+    dashboard.value = response.data
+  } catch (error) {
+    console.error(error.response?.data || error)
+  }
+}
+
+onMounted(() => {
+  loadDashboard()
+})
+</script>

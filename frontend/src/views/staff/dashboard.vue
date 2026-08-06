@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="Staff Dashboard">
+  <AppLayout title="Staff Dashboard">
 
     <div class="row g-4">
 
@@ -35,13 +35,13 @@
 
     </div>
 
-  </AdminLayout>
+  </AppLayout>
 </template>
 
 
 <script setup>
 import { ref, onMounted } from "vue"
-import AdminLayout from "../../components/AdminLayout.vue"
+import AppLayout from "../../components/AppLayout.vue"
 import DashboardCard from "../../components/DashboardCard.vue"
 import api from "../../services/api.js"
 

@@ -3,15 +3,19 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import AdminDashboard from "../views/admin/Dashboard.vue";
-import Treks from "../views/admin/Treks.vue";
+import AdminTreks from "../views/admin/Treks.vue";
 import Staff from "../views/admin/Staff.vue";
 import Users from "../views/admin/Users.vue";
 import Bookings from "../views/admin/Bookings.vue";
-import StaffDashboard from "../views/staff/dashboard.vue";
-import TrekkerDashboard from "../views/trekker/dashboard.vue";
+import StaffDashboard from "../views/staff/Dashboard.vue";
+import TrekkerDashboard from "../views/trekker/Dashboard.vue";
 import Reports from "../views/admin/Reports.vue";
 import AssignedTreks from "../views/staff/AssignedTreks.vue"
-import ManageTrek from "../views/staff/ManageTrek.vue"
+import ManageTrek from "../views/staff/ManageTrek.vue";
+import TrekkerTreks from "../views/trekker/Treks.vue";
+import MyBookings from "../views/trekker/MyBookings.vue";
+import Profile from "../views/trekker/Profile.vue";
+import TrekDetails from "../views/trekker/TrekDetails.vue"
 
 const routes = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,7 +43,7 @@ const routes = createRouter({
 },
 {
   path: "/admin/treks",
-  component: Treks,
+  component: AdminTreks,
   meta: {
     requiresAuth: true,
     role: "admin",
@@ -109,6 +113,38 @@ const routes = createRouter({
     role: "trekker",
   },
 },
+{
+  path: "/trekker/treks",
+  component: TrekkerTreks,
+  meta: {
+    requiresAuth: true,
+    role: "trekker",
+  },
+},
+{
+  path: "/trekker/bookings",
+  component: MyBookings,
+  meta: {
+    requiresAuth: true,
+    role: "trekker",
+  },
+},
+{
+  path: "/trekker/profile",
+  component: Profile,
+  meta: {
+    requiresAuth: true,
+    role: "trekker",
+  },
+},
+{
+  path: "/trekker/treks/:id",
+  component: TrekDetails,
+  meta: {
+    requiresAuth: true,
+    role: "trekker",
+  },
+}
 ]
 });
 

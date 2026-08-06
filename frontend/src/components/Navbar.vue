@@ -1,3 +1,25 @@
+<template>
+  <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top px-4 py-2 shadow-sm">
+    <div class="container-fluid px-0 d-flex align-items-center justify-content-between">
+      
+      <!-- Left: Sidebar Toggle & Page Title -->
+      <div class="d-flex align-items-center gap-3">
+
+
+        <div>
+          <h4 class="fw-bold mb-0 text-dark">{{ title }}</h4>
+          <small class="text-secondary">
+            Welcome, {{ welcomeRole }}!
+          </small>
+        </div>
+      </div>
+
+
+
+    </div>
+  </nav>
+</template>
+
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
@@ -43,25 +65,3 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 </script>
-
-<template>
-  <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top px-4 py-2 shadow-sm">
-    <div class="container-fluid px-0 d-flex align-items-center justify-content-between">
-      
-      <!-- Left: Sidebar Toggle & Page Title -->
-      <div class="d-flex align-items-center gap-3">
-
-
-        <div>
-          <h4 class="fw-bold mb-0 text-dark">{{ title }}</h4>
-          <small class="text-secondary">
-            Welcome, {{ welcomeRole }}!
-          </small>
-        </div>
-      </div>
-
-
-
-    </div>
-  </nav>
-</template>

@@ -1,23 +1,3 @@
-<script setup>
-import { ref } from "vue";
-import Sidebar from "./Sidebar.vue";
-import Navbar from "./Navbar.vue";
-
-defineProps({
-  title: {
-    type: String,
-    default: "Dashboard",
-  },
-});
-
-const isCollapsed = ref(localStorage.getItem("admin_sidebar_collapsed") === "true");
-
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value;
-  localStorage.setItem("admin_sidebar_collapsed", isCollapsed.value);
-};
-</script>
-
 <template>
   <div class="d-flex min-vh-100 bg-light">
     <!-- Full-Height Sidebar Container -->
@@ -36,3 +16,27 @@ const toggleSidebar = () => {
   </div>
 </template>
 
+<script setup>
+import { ref } from "vue";
+import Sidebar from "./Sidebar.vue";
+import Navbar from "./Navbar.vue";
+
+defineProps({
+  title: {
+    type: String,
+    default: "Dashboard",
+  },
+});
+
+const isCollapsed = ref(
+  localStorage.getItem("sidebar_collapsed") === "true"
+)
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value
+  localStorage.setItem(
+    "sidebar_collapsed",
+    isCollapsed.value
+  )
+}
+</script>

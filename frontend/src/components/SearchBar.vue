@@ -1,22 +1,3 @@
-<script setup>
-defineProps({
-  modelValue: {
-    type: String,
-    default: "",
-  },
-  placeholder: {
-    type: String,
-    default: "Search...",
-  },
-});
-
-const emit = defineEmits(["update:modelValue"]);
-
-const clearSearch = () => {
-  emit("update:modelValue", "");
-};
-</script>
-
 <template>
   <div class="input-group shadow-sm rounded">
     <span class="input-group-text bg-white border-end-0">
@@ -42,4 +23,22 @@ const clearSearch = () => {
     </button>
   </div>
 </template>
-
+
+<script setup>
+defineProps({
+  modelValue: {
+    type: String,
+    default: "",
+  },
+  placeholder: {
+    type: String,
+    default: "Search...",
+  },
+});
+
+const emit = defineEmits(["update:modelValue"]);
+
+const clearSearch = () => {
+  emit("update:modelValue", "");
+};
+</script>

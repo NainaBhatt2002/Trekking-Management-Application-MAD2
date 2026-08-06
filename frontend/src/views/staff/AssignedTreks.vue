@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="My Treks">
+  <AppLayout title="My Treks">
 
     <div class="card shadow-sm border-0 rounded-4">
 
@@ -71,13 +71,13 @@
 
     </div>
 
-  </AdminLayout>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import AdminLayout from "../../components/AdminLayout.vue"
+import AppLayout from "../../components/AppLayout.vue"
 import api from "../../services/api"
 
 const router = useRouter()

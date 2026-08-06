@@ -1,6 +1,6 @@
 <template>
 
-  <AdminLayout title="Bookings">
+  <AppLayout title="Bookings">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
@@ -200,7 +200,7 @@
 
     </div>
 
-  </AdminLayout>
+  </AppLayout>
 
 </template>
 
@@ -208,7 +208,7 @@
 import { ref, computed, onMounted } from "vue";
 
 import api from "../../services/api";
-import AdminLayout from "../../components/AdminLayout.vue";
+import AppLayout from "../../components/AppLayout.vue";
 import SearchBar from "../../components/SearchBar.vue";
 
 const bookings = ref([]);

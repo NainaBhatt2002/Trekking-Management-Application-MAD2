@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="Treks">
+  <AppLayout title="Treks">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
@@ -153,6 +153,21 @@
                 >
 
               </div>
+
+                <div class="col-md-6 mb-3">
+
+                  <label class="form-label">
+                    Location
+                  </label>
+
+                  <input
+                    v-model="form.location"
+                    type="text"
+                    class="form-control"
+                    placeholder="Enter Trek Location"
+                  >
+
+                </div>
 
               <div class="col-md-6 mb-3">
 
@@ -331,13 +346,13 @@
         </div>
 
       </div>
-  </AdminLayout>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import api from "../../services/api";
-import AdminLayout from "../../components/AdminLayout.vue";
+import AppLayout from "../../components/AppLayout.vue";
 import SearchBar from "../../components/SearchBar.vue";
 
 const treks = ref([]);
@@ -351,6 +366,7 @@ const selectedTrek = ref(null);
 
 const form = ref({
   trek_name: "",
+  location: "",
   difficulty: "Easy",
   duration: "",
   available_slots: "",
@@ -374,13 +390,15 @@ const closeModal = () => {
 const resetForm = () => {
   form.value = {
     trek_name: "",
+    location: "",
     difficulty: "Easy",
     duration: "",
     available_slots: "",
     staff_id: "",
     status: "Open",
   };
-};
+}
+
 
 const filteredTreks = computed(() => {
   const query = search.value.toLowerCase().trim();
@@ -427,6 +445,7 @@ const editTrek = (trek) => {
 
   form.value = {
     trek_name: trek.trek_name,
+    location: trek.location,
     difficulty: trek.difficulty,
     duration: trek.duration,
     available_slots: trek.available_slots,

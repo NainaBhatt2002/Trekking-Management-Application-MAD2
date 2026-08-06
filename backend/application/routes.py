@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from .database import db
 from sqlalchemy import func
 from .models import User, Trek, Booking
+from sqlalchemy import or_
+from datetime import date, datetime
 
 #Authetication routes for login, register and profile
 
@@ -123,7 +125,8 @@ def get_treks():
             "duration": trek.duration,
             "available_slots": trek.available_slots,
             "status": trek.status,
-            "staff": trek.staff.name
+            "staff": trek.staff.name,
+            "location": trek.location
         }
         for trek in treks
     ])
@@ -143,7 +146,8 @@ def create_trek():
         duration=data["duration"],
         available_slots=data["available_slots"],
         status=data["status"],
-        staff_id=data["staff_id"]
+        staff_id=data["staff_id"],
+        location=data["location"]
     )
 
     db.session.add(trek)
@@ -168,6 +172,7 @@ def update_trek(id):
     trek.available_slots = data["available_slots"]
     trek.staff_id = data["staff_id"]
     trek.status = data["status"]
+    trek.location = data["location"]
 
     db.session.commit()
 
@@ -555,7 +560,8 @@ def get_staff_treks():
             "duration": trek.duration,
             "available_slots": trek.available_slots,
             "status": trek.status,
-            "registered_users": len(trek.bookings)
+            "registered_users": len(trek.bookings),
+            "location": trek.location
         }
         for trek in treks
     ]), 200
@@ -578,7 +584,8 @@ def get_staff_trek(id):
         "difficulty": trek.difficulty,
         "duration": trek.duration,
         "available_slots": trek.available_slots,
-        "status": trek.status
+        "status": trek.status,
+        "location": trek.location
     }), 200
     
 @app.route("/staff/treks/<int:id>", methods=["PUT"])
@@ -640,14 +647,11 @@ def get_participants(id):
             "name": booking.name,
             "email": booking.email,
             "status": booking.booking_status,
-            "booking_date": booking.booking_date
+            "booking_date": booking.booking_date,
+            "location": trek.location
         }
         for booking in bookings
     ])
-
-
-
-
 
 
 #TREKKER DASHBOARD ROUTES
@@ -655,10 +659,277 @@ def get_participants(id):
 @app.route("/trekker/dashboard", methods=["GET"])
 @jwt_required()
 def trekker_dashboard():
+
     if current_user.role != "trekker":
         return jsonify({
             "message": "Access denied"
         }), 403
+
+    available_treks = Trek.query.filter(
+        Trek.status == "Open",
+        Trek.available_slots > 0
+    ).count()
+
+    booked_treks = Booking.query.filter_by(
+        user_id=current_user.id
+    ).count()
+
+    completed_treks = Booking.query.join(Trek).filter(
+        Booking.user_id == current_user.id,
+        Trek.status == "Completed"
+    ).count()
+
+    pending_bookings = Booking.query.filter(
+        Booking.user_id == current_user.id,
+        Booking.booking_status == "Pending"
+    ).count()
+
+    recent_bookings = (
+        Booking.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Booking.id.desc())
+        .limit(5)
+        .all()
+    )
+
     return jsonify({
-        "message": "Welcome to the trekker dashboard!"
+
+        "available_treks": available_treks,
+        "booked_treks": booked_treks,
+        "completed_treks": completed_treks,
+        "pending_bookings": pending_bookings,
+
+        "recentBookings": [
+
+            {
+                "id": booking.id,
+                "trek": booking.trek.trek_name,
+                "status": booking.booking_status,
+                "date": booking.booking_date
+            }
+
+            for booking in recent_bookings
+
+        ]
+
+    }), 200
+    
+@app.route("/trekker/treks", methods=["GET"])
+@jwt_required()
+def get_available_treks():
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    search = request.args.get("search", "")
+    difficulty = request.args.get("difficulty", "")
+    duration = request.args.get("duration", type=int)
+    location = request.args.get("location", "")
+
+    query = Trek.query.filter(
+        Trek.status == "Open",
+
+    )
+
+    if search:
+        query = query.filter(
+            Trek.trek_name.ilike(f"%{search}%")
+        )
+
+    if difficulty:
+        query = query.filter(
+            Trek.difficulty == difficulty
+        )
+
+    if duration:
+        query = query.filter(
+            Trek.duration == duration
+        )
+        
+    if location:
+        query = query.filter(
+            Trek.location.ilike(f"%{location}%")
+        )
+
+    treks = query.all()
+
+    return jsonify([
+
+        {
+            "id": trek.id,
+            "trek_name": trek.trek_name,
+            "difficulty": trek.difficulty,
+            "duration": trek.duration,
+            "available_slots": trek.available_slots,
+            "status": trek.status,
+            "location": trek.location
+        }
+
+        for trek in treks
+
+    ]), 200
+   
+@app.route("/trekker/treks/<int:id>", methods=["GET"])
+@jwt_required()
+def get_trek_details(id):
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    trek = Trek.query.get_or_404(id)
+
+    return jsonify({
+
+        "id": trek.id,
+        "trek_name": trek.trek_name,
+        "location": trek.location,
+        "difficulty": trek.difficulty,
+        "duration": trek.duration,
+        "available_slots": trek.available_slots,
+        "status": trek.status
+
+    }), 200
+
+@app.route("/trekker/bookings/<int:id>", methods=["POST"])
+@jwt_required()
+def book_trek(id):
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    trek = Trek.query.get_or_404(id)
+
+    if trek.status != "Open":
+        return jsonify({
+            "message": "This trek is closed."
+        }), 400
+
+    if trek.available_slots <= 0:
+        return jsonify({
+            "message": "No slots available."
+        }), 400
+
+    existing_booking = Booking.query.filter_by(
+        user_id=current_user.id,
+        trek_id=id
+    ).first()
+
+    if existing_booking:
+        return jsonify({
+            "message": "You have already booked this trek."
+        }), 400
+
+    booking = Booking(
+        user_id=current_user.id,
+        trek_id=id,
+        booking_status="Pending",
+        booking_date=date.today(),
+        payment_status="Pending"
+    )
+
+    db.session.add(booking)
+
+    trek.available_slots -= 1
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Trek booked successfully."
+    }), 201
+    
+@app.route("/trekker/bookings", methods=["GET"])
+@jwt_required()
+def get_my_bookings():
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    bookings = (
+        Booking.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Booking.booking_date.desc())
+        .all()
+    )
+
+    return jsonify([
+
+        {
+            "id": booking.id,
+            "trek_name": booking.trek.trek_name,
+            "location": booking.trek.location,
+            "difficulty": booking.trek.difficulty,
+            "duration": booking.trek.duration,
+            "booking_status": booking.booking_status,
+            "trek_status": booking.trek.status,
+            "booking_date": booking.booking_date
+        }
+
+        for booking in bookings
+
+    ]), 200
+    
+@app.route("/trekker/profile", methods=["GET"])
+@jwt_required()
+def get_profile():
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    return jsonify({
+        "id": current_user.id,
+        "username": current_user.username,
+        "name": current_user.name,
+        "email": current_user.email,
+        "phone": current_user.phone,
+        "gender": current_user.gender,
+        "age": current_user.age,
+        "address": current_user.address,
+        "emergency_contact": current_user.emergency_contact,
+        "blood_group": current_user.blood_group
+    }), 200
+    
+@app.route("/trekker/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    data = request.get_json()
+    data = request.get_json()
+
+    current_user.name = data["name"]
+    current_user.email = data["email"]
+    current_user.phone = data.get("phone")
+    current_user.gender = data.get("gender")
+    current_user.age = data.get("age")
+    current_user.address = data.get("address")
+    current_user.emergency_contact = data.get("emergency_contact")
+    current_user.blood_group = data.get("blood_group")
+    
+    import re
+
+    email = data["email"].strip()
+
+    if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+        return jsonify({
+            "message": "Please enter a valid email address."
+        }), 400
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Profile updated successfully."
     }), 200

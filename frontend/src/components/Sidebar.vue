@@ -1,52 +1,3 @@
-<script setup>
-import { useRouter, useRoute } from "vue-router";
-
-defineProps({
-  isCollapsed: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const emit = defineEmits(["toggle"]);
-const router = useRouter();
-const route = useRoute();
-
-const role = localStorage.getItem("role");
-
-const navItems =
-  role === "admin"
-    ? [
-        { path: "/admin/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
-        { path: "/admin/treks", label: "Treks", icon: "bi bi-signpost-split" },
-        { path: "/admin/staff", label: "Staff", icon: "bi bi-person-badge" },
-        { path: "/admin/users", label: "Users", icon: "bi bi-people" },
-        { path: "/admin/bookings", label: "Bookings", icon: "bi bi-journal-check" },
-        { path: "/admin/reports", label: "Reports", icon: "bi bi-bar-chart" },
-      ]
-    : role === "staff"
-    ? [
-        { path: "/staff/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
-        { path: "/staff/treks", label: "My Treks", icon: "bi bi-signpost-split" },
-      ]
-    : [
-        { path: "/trekker/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
-      ];
-
-const isActive = (path) => {
-  if (path === "/staff/treks") {
-    return route.path.startsWith("/staff/treks")
-  }
-
-  return route.path === path
-}
-
-function logout() {
-  localStorage.clear();
-  router.push("/login");
-}
-</script>
-
 <template>
   <div
     class="bg-dark text-white p-3 d-flex flex-column h-100 shadow"
@@ -112,4 +63,59 @@ function logout() {
   </div>
 </template>
 
+<script setup>
+import { useRouter, useRoute } from "vue-router";
 
+defineProps({
+  isCollapsed: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(["toggle"]);
+const router = useRouter();
+const route = useRoute();
+
+const role = localStorage.getItem("role");
+
+const navItems =
+  role === "admin"
+    ? [
+        { path: "/admin/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
+        { path: "/admin/treks", label: "Treks", icon: "bi bi-signpost-split" },
+        { path: "/admin/staff", label: "Staff", icon: "bi bi-person-badge" },
+        { path: "/admin/users", label: "Users", icon: "bi bi-people" },
+        { path: "/admin/bookings", label: "Bookings", icon: "bi bi-journal-check" },
+        { path: "/admin/reports", label: "Reports", icon: "bi bi-bar-chart" },
+      ]
+    : role === "staff"
+    ? [
+        { path: "/staff/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
+        { path: "/staff/treks", label: "My Treks", icon: "bi bi-signpost-split" },
+      ]
+    : [
+        { path: "/trekker/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
+        { path: "/trekker/treks", label: "Browse Treks", icon: "bi bi-map" },
+        { path: "/trekker/bookings", label: "My Bookings", icon: "bi bi-journal-check" },
+        { path: "/trekker/profile", label: "Profile", icon: "bi bi-person-circle" },
+      ];
+      
+const isActive = (path) => {
+
+  if (
+    path === "/staff/treks" ||
+    path === "/trekker/treks"
+  ) {
+    return route.path.startsWith(path)
+  }
+
+  return route.path === path
+
+}
+
+function logout() {
+  localStorage.clear();
+  router.push("/login");
+}
+</script>

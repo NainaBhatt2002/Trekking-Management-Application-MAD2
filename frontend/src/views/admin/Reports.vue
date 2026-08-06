@@ -1,6 +1,6 @@
 <template>
 
-  <AdminLayout title="Reports">
+  <AppLayout title="Reports">
 
     <div v-if="report">
 
@@ -248,7 +248,7 @@
 
 </div>
 
-  </AdminLayout>
+  </AppLayout>
 
 </template>
 
@@ -265,7 +265,7 @@ import {
 } from "chart.js";
 import { Pie, Doughnut, Bar } from "vue-chartjs";
 import api from "../../services/api";
-import AdminLayout from "../../components/AdminLayout.vue";
+import AppLayout from "../../components/AppLayout.vue";
 
 ChartJS.register(
   ArcElement,

@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="Staff">
+  <AppLayout title="Staff">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
@@ -291,14 +291,14 @@
 
     </div>
 
-  </AdminLayout>
+  </AppLayout>
 
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import api from "../../services/api";
-import AdminLayout from "../../components/AdminLayout.vue";
+import AppLayout from "../../components/AppLayout.vue";
 import SearchBar from "../../components/SearchBar.vue";
 
 const staff = ref([]);

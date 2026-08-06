@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="Manage Trek">
+  <AppLayout title="Manage Trek">
 
     <!-- Success Alert -->
     <div
@@ -285,14 +285,14 @@
 
     </div>
 
-  </AdminLayout>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue"
 import { useRoute } from "vue-router"
 import { Modal } from "bootstrap"
-import AdminLayout from "../../components/AdminLayout.vue"
+import AppLayout from "../../components/AppLayout.vue"
 import api from "../../services/api"
 
 const route = useRoute()
