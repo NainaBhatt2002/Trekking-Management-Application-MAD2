@@ -7,9 +7,11 @@ import Treks from "../views/admin/Treks.vue";
 import Staff from "../views/admin/Staff.vue";
 import Users from "../views/admin/Users.vue";
 import Bookings from "../views/admin/Bookings.vue";
-import StaffDashboard from "../views/StaffDashboard.vue";
-import TrekkerDashboard from "../views/TrekkerDashboard.vue";
+import StaffDashboard from "../views/staff/dashboard.vue";
+import TrekkerDashboard from "../views/trekker/dashboard.vue";
 import Reports from "../views/admin/Reports.vue";
+import AssignedTreks from "../views/staff/AssignedTreks.vue"
+import ManageTrek from "../views/staff/ManageTrek.vue"
 
 const routes = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -78,6 +80,22 @@ const routes = createRouter({
 {
   path: "/staff/dashboard",
   component: StaffDashboard,
+  meta: {
+    requiresAuth: true,
+    role: "staff",
+  },
+},
+{
+  path: "/staff/treks",
+  component: AssignedTreks,
+  meta: {
+    requiresAuth: true,
+    role: "staff",
+  },
+},
+{
+  path: "/staff/treks/:id",
+  component: ManageTrek,
   meta: {
     requiresAuth: true,
     role: "staff",

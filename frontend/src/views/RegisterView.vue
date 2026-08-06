@@ -22,15 +22,20 @@ const register = async () => {
   try {
     const response = await api.post("/register", form.value);
 
-    success.value = response.data;
+    success.value = response.data
 
     setTimeout(() => {
-      router.push("/login");
-    }, 1500);
+      success.value = ""
+      router.push("/login")
+    }, 2000)
 
   } catch (err) {
-    error.value = err.response?.data || "Registration failed";
-  }
+  error.value = err.response?.data || "Registration failed"
+
+  setTimeout(() => {
+    error.value = ""
+  }, 3000)
+}
 };
 </script>
 

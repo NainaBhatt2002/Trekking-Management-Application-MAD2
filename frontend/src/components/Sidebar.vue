@@ -12,16 +12,34 @@ const emit = defineEmits(["toggle"]);
 const router = useRouter();
 const route = useRoute();
 
-const navItems = [
-  { path: "/admin/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
-  { path: "/admin/treks", label: "Treks", icon: "bi bi-signpost-split" },
-  { path: "/admin/staff", label: "Staff", icon: "bi bi-person-badge" },
-  { path: "/admin/users", label: "Users", icon: "bi bi-people" },
-  { path: "/admin/bookings", label: "Bookings", icon: "bi bi-journal-check" },
-  { path: "/admin/reports", label: "Reports", icon: "bi bi-bar-chart" },
-];
+const role = localStorage.getItem("role");
 
-const isActive = (path) => route.path === path;
+const navItems =
+  role === "admin"
+    ? [
+        { path: "/admin/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
+        { path: "/admin/treks", label: "Treks", icon: "bi bi-signpost-split" },
+        { path: "/admin/staff", label: "Staff", icon: "bi bi-person-badge" },
+        { path: "/admin/users", label: "Users", icon: "bi bi-people" },
+        { path: "/admin/bookings", label: "Bookings", icon: "bi bi-journal-check" },
+        { path: "/admin/reports", label: "Reports", icon: "bi bi-bar-chart" },
+      ]
+    : role === "staff"
+    ? [
+        { path: "/staff/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
+        { path: "/staff/treks", label: "My Treks", icon: "bi bi-signpost-split" },
+      ]
+    : [
+        { path: "/trekker/dashboard", label: "Dashboard", icon: "bi bi-speedometer2" },
+      ];
+
+const isActive = (path) => {
+  if (path === "/staff/treks") {
+    return route.path.startsWith("/staff/treks")
+  }
+
+  return route.path === path
+}
 
 function logout() {
   localStorage.clear();

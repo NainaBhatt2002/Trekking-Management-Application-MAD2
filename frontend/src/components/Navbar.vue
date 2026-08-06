@@ -29,6 +29,11 @@ const logout = () => {
   router.push("/login");
 };
 
+const role = localStorage.getItem("role") || "user"
+
+const welcomeRole =
+  role.charAt(0).toUpperCase() + role.slice(1)
+
 onMounted(() => {
   updateClock();
   timer = setInterval(updateClock, 1000);
@@ -49,7 +54,9 @@ onUnmounted(() => {
 
         <div>
           <h4 class="fw-bold mb-0 text-dark">{{ title }}</h4>
-          <small class="text-secondary">Welcome back, Admin!</small>
+          <small class="text-secondary">
+            Welcome, {{ welcomeRole }}!
+          </small>
         </div>
       </div>
 

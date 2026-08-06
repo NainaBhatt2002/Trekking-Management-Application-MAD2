@@ -29,9 +29,14 @@ const handleLogin = async () => {
       router.push("/trekker/dashboard");
     }
   } catch (err) {
-    error.value = err.response?.data || "Invalid credentials";
-  }
-};
+    error.value =
+      err.response?.data?.message || "Invalid credentials"
+
+      setTimeout(() => {
+        error.value = ""
+      }, 3000)
+    }
+}
 </script>
 
 <template>

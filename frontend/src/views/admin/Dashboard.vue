@@ -27,7 +27,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <AdminLayout title="Dashboard">
+  <AdminLayout title="Admin Dashboard">
 
     <div class="row g-4">
 

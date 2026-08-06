@@ -105,28 +105,6 @@ def admin_dashboard():
             for booking in recent_bookings
         ]
     }), 200
-    
-@app.route("/staff/dashboard", methods=["GET"])
-@jwt_required()
-def staff_dashboard():
-    if current_user.role != "staff":
-        return jsonify({
-            "message": "Access denied"
-        }), 403
-    return jsonify({
-        "message": "Welcome to the staff dashboard!"
-    }), 200
-    
-@app.route("/trekker/dashboard", methods=["GET"])
-@jwt_required()
-def trekker_dashboard():
-    if current_user.role != "trekker":
-        return jsonify({
-            "message": "Access denied"
-        }), 403
-    return jsonify({
-        "message": "Welcome to the trekker dashboard!"
-    }), 200
 
 @app.route("/admin/treks", methods=["GET"])
 @jwt_required()
@@ -515,3 +493,172 @@ def reports():
         ]
 
     })
+    
+
+#STAFF DASHBOARD ROUTES
+
+@app.route("/staff/dashboard", methods=["GET"])
+@jwt_required()
+def staff_dashboard():
+
+    if current_user.role != "staff":
+        return jsonify({"message": "Access denied"}), 403
+
+    assigned_treks = Trek.query.filter_by(staff_id=current_user.id).all()
+
+    total_assigned = len(assigned_treks)
+
+    open_treks = sum(
+        1 for trek in assigned_treks
+        if trek.status == "Open"
+    )
+
+    started_treks = sum(
+        1 for trek in assigned_treks
+        if trek.status == "Started"
+    )
+
+    completed_treks = sum(
+        1 for trek in assigned_treks
+        if trek.status == "Completed"
+    )
+
+    registered_trekkers = (
+        db.session.query(func.count(Booking.id))
+        .join(Trek)
+        .filter(Trek.staff_id == current_user.id)
+        .scalar()
+    )
+
+    return jsonify({
+        "assigned_treks": total_assigned,
+        "registered_trekkers": registered_trekkers,
+        "open_treks": open_treks,
+        "started_treks": started_treks,
+        "completed_treks": completed_treks
+    }), 200
+
+@app.route("/staff/treks", methods=["GET"])
+@jwt_required()
+def get_staff_treks():
+
+    if current_user.role != "staff":
+        return jsonify({"message": "Access denied"}), 403
+
+    treks = Trek.query.filter_by(staff_id=current_user.id).all()
+
+    return jsonify([
+        {
+            "id": trek.id,
+            "trek_name": trek.trek_name,
+            "difficulty": trek.difficulty,
+            "duration": trek.duration,
+            "available_slots": trek.available_slots,
+            "status": trek.status,
+            "registered_users": len(trek.bookings)
+        }
+        for trek in treks
+    ]), 200
+    
+@app.route("/staff/treks/<int:id>", methods=["GET"])
+@jwt_required()
+def get_staff_trek(id):
+
+    if current_user.role != "staff":
+        return jsonify({"message": "Access denied"}), 403
+
+    trek = Trek.query.get_or_404(id)
+
+    if trek.staff_id != current_user.id:
+        return jsonify({"message": "Forbidden"}), 403
+
+    return jsonify({
+        "id": trek.id,
+        "trek_name": trek.trek_name,
+        "difficulty": trek.difficulty,
+        "duration": trek.duration,
+        "available_slots": trek.available_slots,
+        "status": trek.status
+    }), 200
+    
+@app.route("/staff/treks/<int:id>", methods=["PUT"])
+@jwt_required()
+def update_staff_trek(id):
+
+    if current_user.role != "staff":
+        return jsonify({"message": "Access denied"}), 403
+
+    trek = Trek.query.get_or_404(id)
+
+    if trek.staff_id != current_user.id:
+        return jsonify({"message": "Forbidden"}), 403
+
+    data = request.get_json()
+
+    if data["available_slots"] < 0:
+        return jsonify({
+            "message": "Available slots cannot be negative."
+        }), 400
+
+    trek.available_slots = data["available_slots"]
+    trek.status = data["status"]
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Trek updated successfully"
+    }), 200
+    
+@app.route("/staff/treks/<int:id>/participants", methods=["GET"])
+@jwt_required()
+def get_participants(id):
+
+    if current_user.role != "staff":
+        return jsonify({"message": "Access denied"}), 403
+
+    trek = Trek.query.get_or_404(id)
+
+    if trek.staff_id != current_user.id:
+        return jsonify({"message": "Forbidden"}), 403
+
+    bookings = (
+        db.session.query(
+            Booking.id,
+            User.name,
+            User.email,
+            Booking.booking_status,
+            Booking.booking_date
+        )
+        .join(User, Booking.user_id == User.id)
+        .filter(Booking.trek_id == id)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": booking.id,
+            "name": booking.name,
+            "email": booking.email,
+            "status": booking.booking_status,
+            "booking_date": booking.booking_date
+        }
+        for booking in bookings
+    ])
+
+
+
+
+
+
+#TREKKER DASHBOARD ROUTES
+
+@app.route("/trekker/dashboard", methods=["GET"])
+@jwt_required()
+def trekker_dashboard():
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+    return jsonify({
+        "message": "Welcome to the trekker dashboard!"
+    }), 200
