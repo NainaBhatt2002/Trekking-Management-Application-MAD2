@@ -347,34 +347,48 @@ def get_bookings():
     if current_user.role != "admin":
         return jsonify({"message": "Access denied"}), 403
 
+    from sqlalchemy.orm import aliased
+
+    StaffUser = aliased(User)
+
     bookings = (
         db.session.query(
             Booking.id,
             User.name.label("user_name"),
             User.email,
             Trek.trek_name,
+            Trek.location,
+            Trek.difficulty,
+            Trek.duration,
+            Trek.status.label("trek_status"),
+            StaffUser.name.label("staff_name"),
             Booking.booking_date,
             Booking.booking_status,
             Booking.payment_status,
         )
         .join(User, Booking.user_id == User.id)
         .join(Trek, Booking.trek_id == Trek.id)
+        .join(StaffUser, Trek.staff_id == StaffUser.id)
         .order_by(Booking.id.desc())
         .all()
     )
-
     return jsonify([
         {
             "id": booking.id,
             "user": booking.user_name,
             "email": booking.email,
             "trek": booking.trek_name,
+            "location": booking.location,
+            "difficulty": booking.difficulty,
+            "duration": booking.duration,
+            "trek_status": booking.trek_status,
+            "staff": booking.staff_name,
             "booking_date": booking.booking_date,
             "booking_status": booking.booking_status,
             "payment_status": booking.payment_status,
         }
         for booking in bookings
-    ])
+    ]), 200
     
 @app.route("/admin/reports", methods=["GET"])
 @jwt_required()
@@ -643,15 +657,49 @@ def get_participants(id):
 
     return jsonify([
         {
-            "id": booking.id,
+            "booking_id": booking.id,
             "name": booking.name,
             "email": booking.email,
-            "status": booking.booking_status,
+            "booking_status": booking.booking_status,
             "booking_date": booking.booking_date,
             "location": trek.location
         }
+
         for booking in bookings
-    ])
+    ]), 200
+    
+@app.route("/staff/bookings", methods=["PUT"])
+@jwt_required()
+def update_booking_status():
+
+    if current_user.role != "staff":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    data = request.get_json()
+
+    for item in data:
+
+        booking = Booking.query.get(item["booking_id"])
+
+        if not booking:
+            continue
+
+        trek = Trek.query.get(booking.trek_id)
+
+        if trek.staff_id != current_user.id:
+            return jsonify({
+                "message": "Unauthorized"
+            }), 403
+
+        booking.booking_status = item["booking_status"]
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Booking statuses updated successfully."
+    }), 200
 
 
 #TREKKER DASHBOARD ROUTES
@@ -933,3 +981,4 @@ def update_profile():
     return jsonify({
         "message": "Profile updated successfully."
     }), 200
+    

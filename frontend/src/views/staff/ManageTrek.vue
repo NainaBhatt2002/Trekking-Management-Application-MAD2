@@ -130,91 +130,115 @@
 
     </div>
 
-    <!-- Participants -->
+<!-- Participants -->
 
-    <div class="card shadow-sm border-0 rounded-4">
+<div class="card shadow-sm border-0 rounded-4">
 
-      <div
-        class="card-header bg-white d-flex justify-content-between align-items-center"
+  <div
+    class="card-header bg-white d-flex justify-content-between align-items-center"
+  >
+
+    <h5 class="mb-0">
+      Registered Participants
+    </h5>
+
+    <span class="badge bg-primary">
+      {{ participants.length }}
+    </span>
+
+  </div>
+
+  <div class="card-body">
+
+    <table class="table table-hover align-middle">
+
+      <thead>
+
+        <tr>
+
+        <th class="w-25">Name</th>
+        <th class="w-35">Email</th>
+        <th class="w-20">Booking Status</th>
+        <th class="w-20">Booking Date</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr
+          v-for="participant in participants"
+          :key="participant.booking_id"
+        >
+
+          <td>
+            {{ participant.name }}
+          </td>
+
+          <td>
+            {{ participant.email }}
+          </td>
+
+            <td>
+
+              <select
+                class="form-select form-select-sm w-100"
+                v-model="participant.booking_status"
+              >
+                <option value="Booked">Booked</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Completed">Completed</option>
+              </select>
+
+            </td>
+
+          <td>
+            {{ formatDate(participant.booking_date) }}
+          </td>
+
+        </tr>
+
+        <tr v-if="participants.length === 0">
+
+          <td
+            colspan="4"
+            class="text-center text-muted py-5"
+          >
+
+            <i class="bi bi-people fs-2 d-block mb-2"></i>
+
+            No participants have registered for this trek yet.
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+    <div
+      v-if="participants.length"
+      class="d-flex justify-content-end mt-4"
+    >
+
+      <button
+        class="btn btn-primary px-4"
+        @click="updateBookingStatus"
       >
 
-        <h5 class="mb-0">
-          Registered Participants
-        </h5>
+        <i class="bi bi-check-circle me-2"></i>
 
-        <span class="badge bg-primary">
-          {{ participants.length }}
-        </span>
+        Update Booking Status
 
-      </div>
-
-      <div class="card-body">
-
-        <table class="table table-hover align-middle">
-
-          <thead>
-
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Booking Date</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            <tr
-              v-for="participant in participants"
-              :key="participant.id"
-            >
-
-              <td>{{ participant.name }}</td>
-
-              <td>{{ participant.email }}</td>
-
-              <td>
-
-                <span
-                  class="badge"
-                  :class="{
-                    'bg-success': participant.status === 'Confirmed',
-                    'bg-warning text-dark': participant.status === 'Pending',
-                    'bg-danger': participant.status === 'Cancelled'
-                  }"
-                >
-                  {{ participant.status }}
-                </span>
-
-              </td>
-
-              <td>{{ participant.booking_date }}</td>
-
-            </tr>
-
-            <tr v-if="participants.length === 0">
-
-              <td
-                colspan="4"
-                class="text-center text-muted py-5"
-              >
-
-                <i class="bi bi-people fs-2 d-block mb-2"></i>
-
-                No participants have registered for this trek yet.
-
-              </td>
-
-            </tr>
-
-          </tbody>
-
-        </table>
-
-      </div>
+      </button>
 
     </div>
+
+  </div>
+
+</div>
 
     <!-- Confirmation Modal -->
 
@@ -367,6 +391,32 @@ const updateTrek = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const updateBookingStatus = async () => {
+  try {
+
+    await api.put("/staff/bookings", participants.value)
+
+    successMessage.value = "Booking statuses updated successfully."
+
+    setTimeout(() => {
+      successMessage.value = ""
+    }, 3000)
+
+    await loadParticipants()
+
+  } catch (error) {
+    console.error(error.response?.data || error)
+  }
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
 }
 
 onMounted(async () => {

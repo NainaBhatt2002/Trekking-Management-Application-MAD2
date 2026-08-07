@@ -22,9 +22,9 @@
       />
 
       <DashboardCard
-        title="Pending"
-        :value="dashboard.pending_bookings"
-        icon="bi bi-hourglass-split"
+        title="Cancelled"
+        :value="dashboard.cancelled_bookings"
+        icon="bi bi-x-circle"
       />
 
     </div>
@@ -64,8 +64,8 @@
                 <span
                   class="badge"
                   :class="{
-                    'bg-success': booking.status === 'Confirmed',
-                    'bg-warning text-dark': booking.status === 'Pending',
+                    'bg-primary': booking.status === 'Booked',
+                    'bg-success': booking.status === 'Completed',
                     'bg-danger': booking.status === 'Cancelled'
                   }"
                 >
@@ -74,7 +74,7 @@
 
               </td>
 
-              <td>{{ booking.date }}</td>
+              <td>{{ formatDate(booking.date) }}</td>
 
             </tr>
 

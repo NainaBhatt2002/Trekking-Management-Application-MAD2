@@ -19,96 +19,104 @@
           <thead>
 
             <tr>
-              <th>Trek</th>
+              <th>Trek name</th>
               <th>Location</th>
               <th>Difficulty</th>
               <th>Duration</th>
+              <th>Booking Date</th>
               <th>Booking Status</th>
               <th>Trek Status</th>
-              <th>Booking Date</th>
             </tr>
 
           </thead>
 
           <tbody v-if="bookings.length">
 
-            <tr
-              v-for="booking in bookings"
-              :key="booking.id"
+        <tr
+        v-for="booking in bookings"
+        :key="booking.id"
+        >
+
+        <td>
+            {{ booking.trek_name }}
+        </td>
+
+        <td>
+            {{ booking.location }}
+        </td>
+
+        <td>
+
+            <span
+            class="badge"
+            :class="{
+                'bg-success': booking.difficulty === 'Easy',
+                'bg-warning text-dark': booking.difficulty === 'Moderate',
+                'bg-danger': booking.difficulty === 'Hard'
+            }"
             >
+            {{ booking.difficulty }}
+            </span>
 
-              <td>{{ booking.trek_name }}</td>
+        </td>
 
-              <td>{{ booking.location }}</td>
+        <td>
+            {{ booking.duration }} Days
+        </td>
 
-              <td>
+        <td>
+            {{ formatDate(booking.booking_date) }}
+        </td>
 
-                <span
-                  class="badge"
-                  :class="{
-                    'bg-success': booking.difficulty === 'Easy',
-                    'bg-warning text-dark': booking.difficulty === 'Moderate',
-                    'bg-danger': booking.difficulty === 'Hard'
-                  }"
-                >
-                  {{ booking.difficulty }}
-                </span>
+        <td>
 
-              </td>
+            <span
+            class="badge"
+            :class="{
+                'bg-primary': booking.booking_status === 'Booked',
+                'bg-success': booking.booking_status === 'Completed',
+                'bg-danger': booking.booking_status === 'Cancelled'
+            }"
+            >
+            {{ booking.booking_status }}
+            </span>
 
-              <td>{{ booking.duration }} Days</td>
+        </td>
 
-              <td>
+        <td>
 
-                <span
-                  class="badge"
-                  :class="{
-                    'bg-warning text-dark': booking.booking_status === 'Pending',
-                    'bg-success': booking.booking_status === 'Confirmed',
-                    'bg-danger': booking.booking_status === 'Cancelled'
-                  }"
-                >
-                  {{ booking.booking_status }}
-                </span>
+            <span
+            class="badge"
+            :class="{
+                'bg-success': booking.trek_status === 'Open',
+                'bg-warning text-dark': booking.trek_status === 'Started',
+                'bg-secondary': booking.trek_status === 'Closed',
+                'bg-dark': booking.trek_status === 'Completed'
+            }"
+            >
+            {{ booking.trek_status }}
+            </span>
 
-              </td>
+        </td>
 
-              <td>
-
-                <span
-                  class="badge"
-                  :class="{
-                    'bg-success': booking.trek_status === 'Open',
-                    'bg-danger': booking.trek_status === 'Closed',
-                    'bg-primary': booking.trek_status === 'Started',
-                    'bg-dark': booking.trek_status === 'Completed'
-                  }"
-                >
-                  {{ booking.trek_status }}
-                </span>
-
-              </td>
-
-              <td>{{ booking.booking_date }}</td>
-
-            </tr>
+        </tr>
 
           </tbody>
 
           <tbody v-else>
 
-            <tr>
+            <tr v-if="bookings.length === 0">
 
-              <td
+            <td
                 colspan="7"
-                class="text-center text-muted py-5"
-              >
+                class="text-center py-5 text-muted"
+            >
 
-                <i class="bi bi-journal-x fs-1 d-block mb-3"></i>
+                <i class="bi bi-journal-x fs-2 d-block mb-2"></i>
 
                 You haven't booked any treks yet.
 
-              </td>
+            </td>
 
             </tr>
 
@@ -141,6 +149,14 @@ const loadBookings = async () => {
   } catch (error) {
     console.error(error.response?.data || error)
   }
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
 }
 
 onMounted(() => {
