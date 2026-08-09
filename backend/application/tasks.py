@@ -135,15 +135,16 @@ def send_trek_reminders():
                     )
                 }
 
-                response = requests.post(
-                    webhook_url,
-                    json=message,
-                    timeout=10
-                )
-
-                response.raise_for_status()
-
-                reminders_sent += 1
+                try:
+                    response = requests.post(
+                        webhook_url,
+                        json=message,
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    reminders_sent += 1
+                except Exception as e:
+                    print(f"Failed to send reminder for booking {booking.id}: {e}")
 
         return {
             "message": "Trek reminders sent successfully.",
