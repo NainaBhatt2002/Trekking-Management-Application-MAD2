@@ -41,10 +41,11 @@
 
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Trek</th>
-              <th>Status</th>
-              <th>Booking Date</th>
+              <th>Trek Name</th>
+              <th>Location</th>
+              <th>Trek Date</th>
+              <th>Booking Status</th>
+              <th>Trek Status</th>
             </tr>
           </thead>
 
@@ -55,26 +56,42 @@
               :key="booking.id"
             >
 
-              <td>{{ booking.id }}</td>
-
               <td>{{ booking.trek }}</td>
+
+              <td>{{ booking.location }}</td>
+
+              <td>{{ formatDate(booking.trek_date) }}</td>
 
               <td>
 
                 <span
                   class="badge"
                   :class="{
-                    'bg-primary': booking.status === 'Booked',
-                    'bg-success': booking.status === 'Completed',
-                    'bg-danger': booking.status === 'Cancelled'
+                    'bg-primary': booking.booking_status === 'Booked',
+                    'bg-success': booking.booking_status === 'Completed',
+                    'bg-danger': booking.booking_status === 'Cancelled'
                   }"
                 >
-                  {{ booking.status }}
+                  {{ booking.booking_status }}
                 </span>
 
               </td>
 
-              <td>{{ formatDate(booking.date) }}</td>
+              <td>
+
+                <span
+                  class="badge"
+                  :class="{
+                    'bg-success': booking.trek_status === 'Open',
+                    'bg-warning text-dark': booking.trek_status === 'Started',
+                    'bg-secondary': booking.trek_status === 'Closed',
+                    'bg-dark': booking.trek_status === 'Completed'
+                  }"
+                >
+                  {{ booking.trek_status }}
+                </span>
+
+              </td>
 
             </tr>
 
@@ -85,7 +102,7 @@
             <tr>
 
               <td
-                colspan="4"
+                colspan="5"
                 class="text-center text-muted py-4"
               >
                 No bookings available.

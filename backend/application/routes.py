@@ -379,6 +379,7 @@ def get_bookings():
             Trek.location,
             Trek.difficulty,
             Trek.duration,
+            Trek.trek_date,
             Trek.status.label("trek_status"),
             StaffUser.name.label("staff_name"),
             Booking.booking_date,
@@ -400,6 +401,7 @@ def get_bookings():
             "location": booking.location,
             "difficulty": booking.difficulty,
             "duration": booking.duration,
+            "trek_date": booking.trek_date.isoformat() if booking.trek_date else None,
             "trek_status": booking.trek_status,
             "staff": booking.staff_name,
             "booking_date": booking.booking_date,
@@ -488,12 +490,12 @@ def reports():
         },
 
         "booking_status": {
-            "Pending": Booking.query.filter_by(
-                booking_status="Pending"
+            "Booked": Booking.query.filter_by(
+                booking_status="Booked"
             ).count(),
 
-            "Confirmed": Booking.query.filter_by(
-                booking_status="Confirmed"
+            "Completed": Booking.query.filter_by(
+                booking_status="Completed"
             ).count(),
 
             "Cancelled": Booking.query.filter_by(
@@ -831,7 +833,10 @@ def trekker_dashboard():
             {
                 "id": booking.id,
                 "trek": booking.trek.trek_name,
-                "status": booking.booking_status,
+                "location": booking.trek.location,
+                "trek_date": booking.trek.trek_date.isoformat() if booking.trek.trek_date else None,
+                "booking_status": booking.booking_status,
+                "trek_status": booking.trek.status,
                 "date": booking.booking_date.isoformat() if booking.booking_date else None
             }
             for booking in recent_bookings
@@ -949,6 +954,11 @@ def get_trek_details(id):
 
     if cached:
         print(f"CACHE HIT: {cache_key}")
+        existing_booking = Booking.query.filter_by(
+            user_id=current_user.id,
+            trek_id=id
+        ).first()
+        cached["is_booked"] = existing_booking is not None
         return jsonify(cached), 200
 
     print(f"CACHE MISS: {cache_key}")
@@ -970,6 +980,14 @@ def get_trek_details(id):
         response_data,
         timeout=60
     )
+
+    # Check if current user already booked this trek
+    existing_booking = Booking.query.filter_by(
+        user_id=current_user.id,
+        trek_id=id
+    ).first()
+
+    response_data["is_booked"] = existing_booking is not None
 
     return jsonify(response_data), 200
 

@@ -5,6 +5,14 @@
       <!-- Left: Sidebar Toggle & Page Title -->
       <div class="d-flex align-items-center gap-3">
 
+        <!-- Mobile hamburger button -->
+        <button
+          class="btn btn-light border d-md-none p-1 d-flex align-items-center justify-content-center"
+          @click="emit('toggle-sidebar')"
+          title="Toggle Menu"
+        >
+          <i class="bi bi-list fs-3"></i>
+        </button>
 
         <div>
           <h4 class="fw-bold mb-0 text-dark">{{ title }}</h4>

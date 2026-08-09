@@ -33,6 +33,16 @@
 
           <div class="col-md-6">
 
+            <strong>Location</strong>
+
+            <p class="text-secondary mb-0">
+              {{ trek.location || "N/A" }}
+            </p>
+
+          </div>
+
+          <div class="col-md-6">
+
             <strong>Difficulty</strong>
 
             <p class="mb-0">

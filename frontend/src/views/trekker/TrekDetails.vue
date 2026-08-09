@@ -105,11 +105,11 @@
 
         <button
         class="btn btn-primary"
-        :disabled="trek.available_slots <= 0 || trek.status !== 'Open'"
+        :disabled="trek.available_slots <= 0 || trek.status !== 'Open' || alreadyBooked"
         @click="openBookingModal"
         >
             <i class="bi bi-journal-check me-2"></i>
-            Book Trek
+            {{ alreadyBooked ? 'Already Booked' : 'Book Trek' }}
         </button>
 
         </div>
@@ -210,6 +210,8 @@ const trek = ref({})
 
 const loading = ref(false)
 
+const alreadyBooked = ref(false)
+
 const successMessage = ref("")
 const errorMessage = ref("")
 
@@ -223,6 +225,8 @@ const loadTrek = async () => {
     const response = await api.get(`/trekker/treks/${route.params.id}`)
 
     trek.value = response.data
+
+    alreadyBooked.value = response.data.is_booked || false
 
   } catch (error) {
     console.error(error.response?.data || error)
@@ -241,6 +245,8 @@ const bookTrek = async () => {
     const response = await api.post(`/trekker/bookings/${route.params.id}`)
 
     successMessage.value = response.data.message
+
+    alreadyBooked.value = true
 
     errorMessage.value = ""
 

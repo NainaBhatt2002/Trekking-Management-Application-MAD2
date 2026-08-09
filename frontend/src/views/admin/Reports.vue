@@ -356,16 +356,16 @@ const staffStatusData = computed(() => ({
 }));
 
 const bookingStatusData = computed(() => ({
-  labels: ["Pending", "Confirmed", "Cancelled"],
+  labels: ["Booked", "Completed", "Cancelled"],
   datasets: [
     {
       data: [
-        report.value?.booking_status.Pending || 0,
-        report.value?.booking_status.Confirmed || 0,
+        report.value?.booking_status.Booked || 0,
+        report.value?.booking_status.Completed || 0,
         report.value?.booking_status.Cancelled || 0,
       ],
       backgroundColor: [
-        "#ffc107",
+        "#0d6efd",
         "#198754",
         "#dc3545",
       ],

@@ -32,7 +32,7 @@
             <th>Booking Date</th>
             <th>Booking Status</th>
             <th>Trek Status</th>
-            <th>Payment</th>
+            <th>Trek Date</th>
             <th class="text-center">Details</th>
           </tr>
 
@@ -89,18 +89,7 @@
                 </td>
 
               <td>
-
-                <span
-                  class="badge"
-                  :class="
-                    booking.payment_status === 'Paid'
-                      ? 'bg-success'
-                      : 'bg-warning text-dark'
-                  "
-                >
-                  {{ booking.payment_status }}
-                </span>
-
+                {{ formatDate(booking.trek_date) }}
               </td>
 
               <td class="text-center">
@@ -124,7 +113,7 @@
             <tr>
 
               <td
-                colspan="7"
+                colspan="9"
                 class="text-center text-muted py-5"
               >
                 No bookings found.
@@ -205,9 +194,15 @@
               <strong>Duration:</strong>
               {{ selectedBooking.duration }} Days
             </p>
+
+            <p>
+              <strong>Trek Date:</strong>
+              {{ formatDate(selectedBooking.trek_date) }}
+            </p>
+
             <p>
               <strong>Booking Date:</strong>
-              {{ selectedBooking.booking_date }}
+              {{ formatDate(selectedBooking.booking_date) }}
             </p>
 
             <p>
@@ -218,11 +213,6 @@
             <p>
               <strong>Trek Status:</strong>
               {{ selectedBooking.trek_status }}
-            </p>
-
-            <p>
-              <strong>Payment Status:</strong>
-              {{ selectedBooking.payment_status }}
             </p>
 
           </div>
@@ -294,6 +284,7 @@ const closeModal = () => {
 };
 
 const formatDate = (date) => {
+  if (!date) return "N/A";
   return new Date(date).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",

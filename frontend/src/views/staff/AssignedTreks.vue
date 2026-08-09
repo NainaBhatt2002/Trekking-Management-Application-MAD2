@@ -14,6 +14,7 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Location</th>
               <th>Difficulty</th>
               <th>Duration</th>
               <th>Slots</th>
@@ -31,6 +32,8 @@
             >
 
               <td>{{ trek.trek_name }}</td>
+
+              <td>{{ trek.location }}</td>
 
               <td>{{ trek.difficulty }}</td>
 
@@ -58,7 +61,7 @@
             </tr>
 
             <tr v-if="treks.length === 0">
-              <td colspan="7" class="text-center text-muted py-4">
+              <td colspan="8" class="text-center text-muted py-4">
                 No treks assigned.
               </td>
             </tr>

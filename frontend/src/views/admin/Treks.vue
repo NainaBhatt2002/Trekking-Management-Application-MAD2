@@ -145,29 +145,35 @@
               <div class="col-md-6 mb-3">
 
                 <label class="form-label">
-                  Trek Name
+                  Trek Name <span class="text-danger">*</span>
                 </label>
 
                 <input
                   v-model="form.trek_name"
                   type="text"
                   class="form-control"
+                  :class="{ 'is-invalid': formErrors.trek_name }"
+                  required
                 >
+                <div class="invalid-feedback">{{ formErrors.trek_name }}</div>
 
               </div>
 
                 <div class="col-md-6 mb-3">
 
                   <label class="form-label">
-                    Location
+                    Location <span class="text-danger">*</span>
                   </label>
 
                   <input
                     v-model="form.location"
                     type="text"
                     class="form-control"
+                    :class="{ 'is-invalid': formErrors.location }"
                     placeholder="Enter Trek Location"
+                    required
                   >
+                  <div class="invalid-feedback">{{ formErrors.location }}</div>
 
                 </div>
 
@@ -191,51 +197,64 @@
               <div class="col-md-6 mb-3">
 
                 <label class="form-label">
-                  Duration (Days)
+                  Duration (Days) <span class="text-danger">*</span>
                 </label>
 
                 <input
                   v-model="form.duration"
                   type="number"
                   class="form-control"
+                  :class="{ 'is-invalid': formErrors.duration }"
+                  min="1"
+                  required
                 >
+                <div class="invalid-feedback">{{ formErrors.duration }}</div>
 
               </div>
 
               <div class="col-md-6 mb-3">
               <label class="form-label">
-                Trek Date
+                Trek Date <span class="text-danger">*</span>
               </label>
               <input
                 v-model="form.trek_date"
                 type="date"
                 class="form-control"
+                :class="{ 'is-invalid': formErrors.trek_date }"
+                required
               >
+              <div class="invalid-feedback">{{ formErrors.trek_date }}</div>
             </div>
 
               <div class="col-md-6 mb-3">
 
                 <label class="form-label">
-                  Available Slots
+                  Available Slots <span class="text-danger">*</span>
                 </label>
 
                 <input
                   v-model="form.available_slots"
                   type="number"
                   class="form-control"
+                  :class="{ 'is-invalid': formErrors.available_slots }"
+                  min="0"
+                  required
                 >
+                <div class="invalid-feedback">{{ formErrors.available_slots }}</div>
 
               </div>
 
               <div class="col-md-6 mb-3">
 
                 <label class="form-label">
-                  Assign Staff
+                  Assign Staff <span class="text-danger">*</span>
                 </label>
 
                 <select
                   v-model="form.staff_id"
                   class="form-select"
+                  :class="{ 'is-invalid': formErrors.staff_id }"
+                  required
                 >
 
                   <option
@@ -254,6 +273,7 @@
                   </option>
 
                 </select>
+                <div class="invalid-feedback">{{ formErrors.staff_id }}</div>
 
               </div>
 
@@ -377,6 +397,8 @@ const editingId = ref(null);
 const showDeleteModal = ref(false);
 const selectedTrek = ref(null);
 
+const formErrors = ref({});
+
 const form = ref({
   trek_name: "",
   location: "",
@@ -387,6 +409,37 @@ const form = ref({
   status: "Open",
   trek_date: "",
 });
+
+const validateForm = () => {
+  const errors = {};
+
+  if (!form.value.trek_name.trim()) {
+    errors.trek_name = "Trek name is required.";
+  }
+
+  if (!form.value.location.trim()) {
+    errors.location = "Location is required.";
+  }
+
+  if (!form.value.duration || Number(form.value.duration) < 1) {
+    errors.duration = "Duration must be at least 1 day.";
+  }
+
+  if (!form.value.trek_date) {
+    errors.trek_date = "Trek date is required.";
+  }
+
+  if (form.value.available_slots === "" || Number(form.value.available_slots) < 0) {
+    errors.available_slots = "Slots must be 0 or more.";
+  }
+
+  if (!form.value.staff_id) {
+    errors.staff_id = "Please assign a staff member.";
+  }
+
+  formErrors.value = errors;
+  return Object.keys(errors).length === 0;
+};
 
 const openModal = () => {
   resetForm();
@@ -412,6 +465,7 @@ const resetForm = () => {
     status: "Open",
     trek_date: "",
   };
+  formErrors.value = {};
 };
 
 
@@ -443,6 +497,8 @@ const loadStaff = async () => {
 };
 
 const createTrek = async () => {
+  if (!validateForm()) return;
+
   try {
     await api.post("/admin/treks", form.value);
 
@@ -475,6 +531,8 @@ form.value = {
 };
 
 const updateTrek = async () => {
+  if (!validateForm()) return;
+
   try {
     await api.put(`/admin/treks/${editingId.value}`, form.value);
 
