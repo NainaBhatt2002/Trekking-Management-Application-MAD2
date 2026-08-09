@@ -11,8 +11,17 @@ from application.tasks import export_trekking_history
 from application.celery_app import celery
 from celery.result import AsyncResult
 import os
+import json
 from flask_mail import Message
 from application.email import mail
+from application.cache import (
+    redis_client,
+    get_cache,
+    set_cache,
+    delete_cache,
+    clear_trek_cache,
+    clear_cache_pattern
+)
 
 #Authetication routes for login, register and profile
 
@@ -158,6 +167,7 @@ def create_trek():
     )
     db.session.add(trek)
     db.session.commit()
+    clear_trek_cache()
 
     return jsonify({"message": "Trek created successfully"}), 201
     
@@ -182,6 +192,7 @@ def update_trek(id):
     trek.trek_date = date.fromisoformat(data["trek_date"]) if data.get("trek_date") else None
 
     db.session.commit()
+    clear_trek_cache()
 
     return jsonify({"message": "Trek updated successfully"}), 200
 
@@ -196,6 +207,7 @@ def delete_trek(id):
 
     db.session.delete(trek)
     db.session.commit()
+    clear_trek_cache()
 
     return jsonify({
         "message": "Trek deleted successfully"
@@ -569,24 +581,49 @@ def staff_dashboard():
 def get_staff_treks():
 
     if current_user.role != "staff":
-        return jsonify({"message": "Access denied"}), 403
+        return jsonify({
+            "message": "Access denied"
+        }), 403
 
-    treks = Trek.query.filter_by(staff_id=current_user.id).all()
+    cache_key = f"staff:treks:{current_user.id}"
 
-    return jsonify([
+    cached = get_cache(cache_key)
+
+    if cached:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached), 200
+
+    print(f"CACHE MISS: {cache_key}")
+
+    treks = Trek.query.filter_by(
+        staff_id=current_user.id
+    ).all()
+
+    response_data = [
         {
             "id": trek.id,
             "trek_name": trek.trek_name,
             "difficulty": trek.difficulty,
             "duration": trek.duration,
-            "trek_date": trek.trek_date.isoformat() if trek.trek_date else None,
+            "trek_date": (
+                trek.trek_date.isoformat()
+                if trek.trek_date else None
+            ),
             "available_slots": trek.available_slots,
             "status": trek.status,
             "registered_users": len(trek.bookings),
             "location": trek.location
         }
         for trek in treks
-    ]), 200
+    ]
+
+    set_cache(
+        cache_key,
+        response_data,
+        timeout=60
+    )
+
+    return jsonify(response_data), 200
     
 @app.route("/staff/treks/<int:id>", methods=["GET"])
 @jwt_required()
@@ -634,6 +671,12 @@ def update_staff_trek(id):
     trek.status = data["status"]
 
     db.session.commit()
+    
+    clear_trek_cache()
+    
+    delete_cache(
+        f"staff:treks:{current_user.id}"
+    )
 
     return jsonify({
         "message": "Trek updated successfully"
@@ -688,6 +731,8 @@ def update_booking_status():
 
     data = request.get_json()
 
+    affected_users = set()
+
     for item in data:
 
         booking = Booking.query.get(item["booking_id"])
@@ -704,12 +749,23 @@ def update_booking_status():
 
         booking.booking_status = item["booking_status"]
 
+        affected_users.add(booking.user_id)
+
     db.session.commit()
+
+    for user_id in affected_users:
+
+        delete_cache(
+            f"dashboard:trekker:{user_id}"
+        )
+
+        delete_cache(
+            f"bookings:trekker:{user_id}"
+        )
 
     return jsonify({
         "message": "Booking statuses updated successfully."
     }), 200
-
 
 #TREKKER DASHBOARD ROUTES
 
@@ -721,6 +777,16 @@ def trekker_dashboard():
         return jsonify({
             "message": "Access denied"
         }), 403
+
+    cache_key = f"dashboard:trekker:{current_user.id}"
+
+    cached = get_cache(cache_key)
+
+    if cached:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached), 200
+
+    print(f"CACHE MISS: {cache_key}")
 
     available_treks = Trek.query.filter(
         Trek.status == "Open",
@@ -741,6 +807,11 @@ def trekker_dashboard():
         Booking.booking_status == "Pending"
     ).count()
 
+    cancelled_bookings = Booking.query.filter(
+        Booking.user_id == current_user.id,
+        Booking.booking_status == "Cancelled"
+    ).count()
+
     recent_bookings = (
         Booking.query
         .filter_by(user_id=current_user.id)
@@ -749,27 +820,31 @@ def trekker_dashboard():
         .all()
     )
 
-    return jsonify({
-
+    response_data = {
         "available_treks": available_treks,
         "booked_treks": booked_treks,
         "completed_treks": completed_treks,
         "pending_bookings": pending_bookings,
+        "cancelled_bookings": cancelled_bookings,
 
         "recentBookings": [
-
             {
                 "id": booking.id,
                 "trek": booking.trek.trek_name,
                 "status": booking.booking_status,
-                "date": booking.booking_date
+                "date": booking.booking_date.isoformat() if booking.booking_date else None
             }
-
             for booking in recent_bookings
-
         ]
+    }
 
-    }), 200
+    set_cache(
+        cache_key,
+        response_data,
+        timeout=30
+    )
+
+    return jsonify(response_data), 200
     
 @app.route("/trekker/treks", methods=["GET"])
 @jwt_required()
@@ -785,9 +860,29 @@ def get_available_treks():
     duration = request.args.get("duration", type=int)
     location = request.args.get("location", "")
 
-    query = Trek.query.filter(
-        Trek.status == "Open",
+    # create a unique cache key for each filter combination
+    cache_key = (
+        f"treks:"
+        f"search={search}:"
+        f"difficulty={difficulty}:"
+        f"duration={duration}:"
+        f"location={location}"
+    )
 
+    # check Redis cache
+    cached_treks = redis_client.get(cache_key)
+
+    if cached_treks:
+        print("CACHE HIT:", cache_key)
+
+        return jsonify(
+            json.loads(cached_treks)
+        ), 200
+
+    print("CACHE MISS:", cache_key)
+
+    query = Trek.query.filter(
+        Trek.status == "Open"
     )
 
     if search:
@@ -804,7 +899,7 @@ def get_available_treks():
         query = query.filter(
             Trek.duration == duration
         )
-        
+
     if location:
         query = query.filter(
             Trek.location.ilike(f"%{location}%")
@@ -812,21 +907,32 @@ def get_available_treks():
 
     treks = query.all()
 
-    return jsonify([
-
+    trek_data = [
         {
             "id": trek.id,
             "trek_name": trek.trek_name,
             "difficulty": trek.difficulty,
             "duration": trek.duration,
+            "trek_date": (
+                trek.trek_date.isoformat()
+                if trek.trek_date
+                else None
+            ),
             "available_slots": trek.available_slots,
             "status": trek.status,
             "location": trek.location
         }
-
         for trek in treks
+    ]
 
-    ]), 200
+    #store result in Redis for 60 seconds
+    redis_client.set(
+        cache_key,
+        json.dumps(trek_data),
+        ex=60
+    )
+
+    return jsonify(trek_data), 200
    
 @app.route("/trekker/treks/<int:id>", methods=["GET"])
 @jwt_required()
@@ -837,10 +943,19 @@ def get_trek_details(id):
             "message": "Access denied"
         }), 403
 
+    cache_key = f"trek:details:{id}"
+
+    cached = get_cache(cache_key)
+
+    if cached:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached), 200
+
+    print(f"CACHE MISS: {cache_key}")
+
     trek = Trek.query.get_or_404(id)
 
-    return jsonify({
-
+    response_data = {
         "id": trek.id,
         "trek_name": trek.trek_name,
         "location": trek.location,
@@ -848,8 +963,15 @@ def get_trek_details(id):
         "duration": trek.duration,
         "available_slots": trek.available_slots,
         "status": trek.status
+    }
 
-    }), 200
+    set_cache(
+        cache_key,
+        response_data,
+        timeout=60
+    )
+
+    return jsonify(response_data), 200
 
 @app.route("/trekker/bookings/<int:id>", methods=["POST"])
 @jwt_required()
@@ -891,10 +1013,18 @@ def book_trek(id):
     )
 
     db.session.add(booking)
-
     trek.available_slots -= 1
-
     db.session.commit()
+    
+    clear_trek_cache()
+
+    delete_cache(
+        f"dashboard:trekker:{current_user.id}"
+    )
+
+    delete_cache(
+        f"bookings:trekker:{current_user.id}"
+    )
 
     return jsonify({
         "message": "Trek booked successfully."
@@ -909,6 +1039,16 @@ def get_my_bookings():
             "message": "Access denied"
         }), 403
 
+    cache_key = f"bookings:trekker:{current_user.id}"
+
+    cached = get_cache(cache_key)
+
+    if cached:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached), 200
+
+    print(f"CACHE MISS: {cache_key}")
+
     bookings = (
         Booking.query
         .filter_by(user_id=current_user.id)
@@ -916,8 +1056,7 @@ def get_my_bookings():
         .all()
     )
 
-    return jsonify([
-
+    response_data = [
         {
             "id": booking.id,
             "trek_name": booking.trek.trek_name,
@@ -925,14 +1064,26 @@ def get_my_bookings():
             "difficulty": booking.trek.difficulty,
             "duration": booking.trek.duration,
             "booking_status": booking.booking_status,
-            "trek_date": booking.trek.trek_date.isoformat() if booking.trek.trek_date else None,
+            "trek_date": (
+                booking.trek.trek_date.isoformat()
+                if booking.trek.trek_date else None
+            ),
             "trek_status": booking.trek.status,
-            "booking_date": booking.booking_date
+            "booking_date": (
+                booking.booking_date.isoformat()
+                if booking.booking_date else None
+            )
         }
-
         for booking in bookings
+    ]
 
-    ]), 200
+    set_cache(
+        cache_key,
+        response_data,
+        timeout=30
+    )
+
+    return jsonify(response_data), 200
     
 @app.route("/trekker/profile", methods=["GET"])
 @jwt_required()

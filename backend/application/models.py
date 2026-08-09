@@ -37,7 +37,7 @@ class Trek(db.Model):
     staff_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     
-    bookings = db.relationship("Booking", backref="trek", lazy=True)
+    bookings = db.relationship("Booking", backref="trek", cascade="all, delete-orphan")
 
 
 # Booking Model

@@ -6,6 +6,7 @@ from application.database import db
 from application.models import User, Trek, Booking, StaffProfile
 from application.security import jwt
 from application.email import mail
+from application.cache import init_cache
 
 app = None
 
@@ -16,6 +17,7 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
+    init_cache(app)
     app.app_context().push()
     return app
 
