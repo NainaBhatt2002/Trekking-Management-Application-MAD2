@@ -64,10 +64,10 @@
 
           <div class="col-md-6">
 
-            <strong>Registered Participants</strong>
+            <strong>Trek Date</strong>
 
             <p class="text-secondary mb-0">
-              {{ trek.participants }}
+              {{ formatDate(trek.trek_date) || "N/A" }}
             </p>
 
           </div>
@@ -412,6 +412,8 @@ const updateBookingStatus = async () => {
 }
 
 const formatDate = (date) => {
+  if (!date) return "N/A"
+
   return new Date(date).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",

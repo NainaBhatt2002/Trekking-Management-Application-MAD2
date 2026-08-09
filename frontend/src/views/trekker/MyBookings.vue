@@ -4,12 +4,22 @@
 
     <div class="card shadow-sm border-0 rounded-4">
 
-      <div class="card-header bg-white">
-
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
           My Trek Bookings
         </h5>
 
+        <button
+          class="btn btn-primary btn-sm"
+          @click="exportHistory"
+          :disabled="exporting"
+        >
+          <i
+            class="bi"
+            :class="exporting ? 'bi-hourglass-split' : 'bi-download'"
+          ></i>
+          {{ exporting ? "Exporting..." : "Export History" }}
+        </button>
       </div>
 
       <div class="card-body">
@@ -23,7 +33,7 @@
               <th>Location</th>
               <th>Difficulty</th>
               <th>Duration</th>
-              <th>Booking Date</th>
+              <th>Trek Date</th>
               <th>Booking Status</th>
               <th>Trek Status</th>
             </tr>
@@ -65,7 +75,7 @@
         </td>
 
         <td>
-            {{ formatDate(booking.booking_date) }}
+            {{ formatDate(booking.trek_date) }}
         </td>
 
         <td>
@@ -137,7 +147,9 @@ import { ref, onMounted } from "vue"
 import AppLayout from "../../components/AppLayout.vue"
 import api from "../../services/api"
 
+
 const bookings = ref([])
+const exporting = ref(false)
 
 const loadBookings = async () => {
   try {
@@ -158,6 +170,58 @@ const formatDate = (date) => {
     year: "numeric",
   })
 }
+
+const exportHistory = async () => {
+  try {
+    exporting.value = true;
+    const response = await api.post("/trekker/export-history");
+    const taskId = response.data.task_id;
+    let completed = false;
+
+    while (!completed) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const statusResponse = await api.get(
+        `/trekker/export-history/status/${taskId}`
+      );
+
+      if (statusResponse.data.status === "Completed") {
+        completed = true;
+      } else if (statusResponse.data.status === "Failed") {
+        throw new Error("Export failed.");
+      }
+    }
+
+    const downloadResponse = await api.get(
+      `/trekker/export-history/download/${taskId}`,
+      {
+        responseType: "blob"
+      }
+    );
+
+    const blob = new Blob(
+      [downloadResponse.data],
+      { type: "text/csv" }
+    );
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "trekking_history.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error.response?.data || error);
+    alert("Unable to export trekking history.");
+  } finally {
+    exporting.value = false;
+  }
+};
 
 onMounted(() => {
   loadBookings()

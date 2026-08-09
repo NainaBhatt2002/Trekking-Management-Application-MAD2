@@ -6,6 +6,13 @@ from sqlalchemy import func
 from .models import User, Trek, Booking
 from sqlalchemy import or_
 from datetime import date, datetime
+from flask import send_file
+from application.tasks import export_trekking_history
+from application.celery_app import celery
+from celery.result import AsyncResult
+import os
+from flask_mail import Message
+from application.email import mail
 
 #Authetication routes for login, register and profile
 
@@ -111,7 +118,6 @@ def admin_dashboard():
 @app.route("/admin/treks", methods=["GET"])
 @jwt_required()
 def get_treks():
-
     if current_user.role != "admin":
         return jsonify({"message": "Access denied"}), 403
 
@@ -125,8 +131,9 @@ def get_treks():
             "duration": trek.duration,
             "available_slots": trek.available_slots,
             "status": trek.status,
-            "staff": trek.staff.name,
-            "location": trek.location
+            "staff": trek.staff.name if trek.staff else "Unassigned",
+            "location": trek.location,
+            "trek_date": trek.trek_date.isoformat() if trek.trek_date else None
         }
         for trek in treks
     ])
@@ -134,7 +141,6 @@ def get_treks():
 @app.route("/admin/treks", methods=["POST"])
 @jwt_required()
 def create_trek():
-
     if current_user.role != "admin":
         return jsonify({"message": "Access denied"}), 403
 
@@ -147,9 +153,9 @@ def create_trek():
         available_slots=data["available_slots"],
         status=data["status"],
         staff_id=data["staff_id"],
-        location=data["location"]
+        location=data["location"],
+        trek_date=date.fromisoformat(data["trek_date"]) if data.get("trek_date") else None
     )
-
     db.session.add(trek)
     db.session.commit()
 
@@ -173,6 +179,7 @@ def update_trek(id):
     trek.staff_id = data["staff_id"]
     trek.status = data["status"]
     trek.location = data["location"]
+    trek.trek_date = date.fromisoformat(data["trek_date"]) if data.get("trek_date") else None
 
     db.session.commit()
 
@@ -572,6 +579,7 @@ def get_staff_treks():
             "trek_name": trek.trek_name,
             "difficulty": trek.difficulty,
             "duration": trek.duration,
+            "trek_date": trek.trek_date.isoformat() if trek.trek_date else None,
             "available_slots": trek.available_slots,
             "status": trek.status,
             "registered_users": len(trek.bookings),
@@ -597,6 +605,7 @@ def get_staff_trek(id):
         "trek_name": trek.trek_name,
         "difficulty": trek.difficulty,
         "duration": trek.duration,
+        "trek_date": trek.trek_date.isoformat() if trek.trek_date else None,
         "available_slots": trek.available_slots,
         "status": trek.status,
         "location": trek.location
@@ -876,7 +885,7 @@ def book_trek(id):
     booking = Booking(
         user_id=current_user.id,
         trek_id=id,
-        booking_status="Pending",
+        booking_status="Booked",
         booking_date=date.today(),
         payment_status="Pending"
     )
@@ -916,6 +925,7 @@ def get_my_bookings():
             "difficulty": booking.trek.difficulty,
             "duration": booking.trek.duration,
             "booking_status": booking.booking_status,
+            "trek_date": booking.trek.trek_date.isoformat() if booking.trek.trek_date else None,
             "trek_status": booking.trek.status,
             "booking_date": booking.booking_date
         }
@@ -982,3 +992,120 @@ def update_profile():
         "message": "Profile updated successfully."
     }), 200
     
+@app.route("/trekker/export-history", methods=["POST"])
+@jwt_required()
+def start_trekking_history_export():
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    task = export_trekking_history.delay(
+        current_user.id
+    )
+
+    return jsonify({
+        "message": "Export started.",
+        "task_id": task.id
+    }), 202
+    
+@app.route("/trekker/export-history/status/<task_id>", methods=["GET"])
+@jwt_required()
+def export_history_status(task_id):
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    task = AsyncResult(
+        task_id,
+        app=celery
+    )
+
+    if task.state == "PENDING":
+
+        return jsonify({
+            "status": "Processing"
+        }), 200
+
+    if task.state == "SUCCESS":
+
+        result = task.result
+
+        if result["user_id"] != current_user.id:
+            return jsonify({
+                "message": "Access denied"
+            }), 403
+
+        return jsonify({
+            "status": "Completed",
+            "filename": result["filename"]
+        }), 200
+
+    if task.state == "FAILURE":
+
+        return jsonify({
+            "status": "Failed"
+        }), 200
+
+    return jsonify({
+        "status": task.state
+    }), 200
+    
+@app.route("/trekker/export-history/download/<task_id>", methods=["GET"])
+@jwt_required()
+def download_trekking_history(task_id):
+
+    if current_user.role != "trekker":
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    task = AsyncResult(
+        task_id,
+        app=celery
+    )
+
+    if task.state != "SUCCESS":
+        return jsonify({
+            "message": "Export is not ready yet."
+        }), 400
+
+    result = task.result
+
+    if result["user_id"] != current_user.id:
+        return jsonify({
+            "message": "Access denied"
+        }), 403
+
+    if not os.path.exists(result["filepath"]):
+        return jsonify({
+            "message": "Export file not found."
+        }), 404
+
+    return send_file(
+        result["filepath"],
+        as_attachment=True,
+        download_name=result["filename"],
+        mimetype="text/csv"
+    )
+    
+    
+#temporary route
+
+@app.route("/test-email")
+def test_email():
+    msg = Message(
+        subject="Trekkify Test Email",
+        sender="trekkify@localhost",
+        recipients=["test@example.com"],
+        body="This is a test email from Trekkify."
+    )
+
+    mail.send(msg)
+
+    return jsonify({
+        "message": "Test email sent successfully."
+    }), 200

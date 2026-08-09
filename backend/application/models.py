@@ -31,6 +31,7 @@ class Trek(db.Model):
     trek_name = db.Column(db.String(100), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)
     duration = db.Column(db.Integer, nullable=False)
+    trek_date = db.Column(db.Date, nullable=True)
     available_slots = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), default="Open")
     staff_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)

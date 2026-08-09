@@ -22,3 +22,6 @@ backend/instance/
 
 # Windows
 Thumbs.db
+
+#celery files
+backend/celerybeat-schedule*

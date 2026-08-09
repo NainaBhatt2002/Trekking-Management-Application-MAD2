@@ -35,6 +35,7 @@
             <th>Name</th>
             <th>Difficulty</th>
             <th>Duration</th>
+            <th>Trek Date</th>
             <th>Slots</th>
             <th>Staff</th>
             <th>Status</th>
@@ -53,6 +54,7 @@
               <td>{{ trek.trek_name }}</td>
               <td>{{ trek.difficulty }}</td>
               <td>{{ trek.duration }} Days</td>
+              <td>{{ trek.trek_date }}</td>
               <td>{{ trek.available_slots }}</td>
               <td>{{ trek.staff }}</td>
 
@@ -199,6 +201,17 @@
                 >
 
               </div>
+
+              <div class="col-md-6 mb-3">
+              <label class="form-label">
+                Trek Date
+              </label>
+              <input
+                v-model="form.trek_date"
+                type="date"
+                class="form-control"
+              >
+            </div>
 
               <div class="col-md-6 mb-3">
 
@@ -372,6 +385,7 @@ const form = ref({
   available_slots: "",
   staff_id: "",
   status: "Open",
+  trek_date: "",
 });
 
 const openModal = () => {
@@ -396,8 +410,9 @@ const resetForm = () => {
     available_slots: "",
     staff_id: "",
     status: "Open",
+    trek_date: "",
   };
-}
+};
 
 
 const filteredTreks = computed(() => {
@@ -443,17 +458,18 @@ const editTrek = (trek) => {
   isEditing.value = true;
   editingId.value = trek.id;
 
-  form.value = {
-    trek_name: trek.trek_name,
-    location: trek.location,
-    difficulty: trek.difficulty,
-    duration: trek.duration,
-    available_slots: trek.available_slots,
-    staff_id: staffList.value.find(
-      (staff) => staff.name === trek.staff
-    )?.id,
-    status: trek.status,
-  };
+form.value = {
+  trek_name: trek.trek_name,
+  location: trek.location,
+  difficulty: trek.difficulty,
+  duration: trek.duration,
+  available_slots: trek.available_slots,
+  staff_id: staffList.value.find(
+    (staff) => staff.name === trek.staff
+  )?.id,
+  status: trek.status,
+  trek_date: trek.trek_date || "",
+};
 
   showModal.value = true;
 };
