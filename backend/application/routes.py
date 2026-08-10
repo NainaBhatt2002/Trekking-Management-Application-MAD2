@@ -1260,21 +1260,3 @@ def download_trekking_history(task_id):
         download_name=result["filename"],
         mimetype="text/csv"
     )
-    
-    
-#temporary route
-
-@app.route("/test-email")
-def test_email():
-    msg = Message(
-        subject="Trekkify Test Email",
-        sender="trekkify@localhost",
-        recipients=["test@example.com"],
-        body="This is a test email from Trekkify."
-    )
-
-    mail.send(msg)
-
-    return jsonify({
-        "message": "Test email sent successfully."
-    }), 200
